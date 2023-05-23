@@ -4,6 +4,7 @@ import game.object.CoinLevel;
 import game.object.CoinPlacement;
 import game.object.Level;
 import game.object.Theme;
+import org.joml.Vector2i;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -44,6 +45,7 @@ public class LevelLoader {
 		var coins = new ArrayList<CoinPlacement>();
 		var spawnX = -1;
 		var spawnY = -1;
+		var drugDealerPos = new Vector2i(0, 0);
 
 		for (var j = 0; j < height; ++j) {
 			var line = lines[height - j];
@@ -56,11 +58,14 @@ public class LevelLoader {
 					case '#' -> level[Util.indexOf(i, j, width)] = Level.TILE_GROUND;
 					case '@' -> level[Util.indexOf(i, j, width)] = Level.TILE_HELL_GROUND;
 					case '*' -> level[Util.indexOf(i, j, width)] = Level.TILE_LAVA;
+					case '/' -> level[Util.indexOf(i, j, width)] = Level.TILE_SLOPE_RIGHT;
+					case '\\' -> level[Util.indexOf(i, j, width)] = Level.TILE_SLOPE_LEFT;
 					case '|' -> safeX = i;
 					case 'p' -> {
 						spawnX = i;
 						spawnY = j;
 					}
+					case 's' -> drugDealerPos = new Vector2i(i, j);
 					case 'o' -> coins.add(new CoinPlacement(i, j, CoinLevel.gold));
 					case 'b' -> coins.add(new CoinPlacement(i, j, CoinLevel.heavy));
 					case 'd' -> coins.add(new CoinPlacement(i, j, CoinLevel.delta));
@@ -85,7 +90,8 @@ public class LevelLoader {
 			flags.contains("wall"),
 			safeX,
 			flags.contains("portal") ? Theme.PORTAL_THEME : Theme.HELL_THEME,
-			level
+			level,
+			drugDealerPos
 		);
 	}
 }

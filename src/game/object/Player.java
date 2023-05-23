@@ -88,12 +88,14 @@ public class Player {
 
 			var downCollision = findCollision(
 				Collision.collideDown(level, left, down + moveY),
-				Collision.collideDown(level, right, down + moveY)
+				Collision.collideDown(level, right, down + moveY),
+				Collision.collideDown(level, left, down + 1f + moveY),
+				Collision.collideDown(level, right, down + 1f + moveY)
 			);
 
 			if (downCollision != null) {
 				onGround = true;
-				y = downCollision.y + DOWN;
+				y = downCollision.value + DOWN;
 
 				if (yVel < 0) {
 					yVel = 0;
@@ -108,7 +110,7 @@ public class Player {
 			);
 
 			if (upCollision != null) {
-				y = upCollision.y - UP;
+				y = upCollision.value - UP;
 
 				if (yVel > 0) {
 					yVel = 0;
@@ -136,7 +138,7 @@ public class Player {
 			if (leftCollision == null) {
 				x -= moveX;
 			} else {
-				x = leftCollision.x + LEFT;
+				x = leftCollision.value + LEFT;
 			}
 		}
 
@@ -152,7 +154,7 @@ public class Player {
 			if (rightCollision == null) {
 				x += moveX;
 			} else {
-				x = rightCollision.x - RIGHT;
+				x = rightCollision.value - RIGHT;
 			}
 		}
 

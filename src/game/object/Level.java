@@ -4,12 +4,15 @@ import engine.Camera;
 import engine.Texture;
 import game.Assets;
 import game.Util;
+import org.joml.Vector2i;
 
 public class Level {
 	public static final int TILE_EMPTY = 0;
 	public static final int TILE_GROUND = 1;
 	public static final int TILE_HELL_GROUND = 2;
 	public static final int TILE_LAVA = 3;
+	public static final int TILE_SLOPE_RIGHT = 4;
+	public static final int TILE_SLOPE_LEFT = 5;
 
 	public static final float TILE_SIZE = 32.0f;
 
@@ -24,6 +27,7 @@ public class Level {
 	public int safeX;
 	public int[] level;
 	public Coin[] coins;
+	public Vector2i drugDealerPos;
 
 	public Level(
 		int width,
@@ -34,7 +38,8 @@ public class Level {
 		boolean hasWall,
 		int safeX,
 		Theme theme,
-		int[] level
+		int[] level,
+		Vector2i drugDealerPos
 	) {
 		this.width = width;
 		this.height = height;
@@ -45,6 +50,7 @@ public class Level {
 		this.safeX = safeX;
 		this.theme = theme;
 		this.level = level;
+		this.drugDealerPos = drugDealerPos;
 	}
 
 	public void reset() {
@@ -57,7 +63,7 @@ public class Level {
 
 	public static boolean solid(int tile) {
 		switch (tile) {
-			case TILE_GROUND, TILE_HELL_GROUND -> {
+			case TILE_GROUND, TILE_HELL_GROUND, TILE_SLOPE_LEFT, TILE_SLOPE_RIGHT -> {
 				return true;
 			}
 			default -> {
@@ -99,7 +105,9 @@ public class Level {
 					texture = Assets.brickTexture;
 				} else if (tile == TILE_HELL_GROUND) {
 					texture = Assets.hellGroundTexture;
-				} else if (tile == TILE_LAVA) {
+				} else if (tile == TILE_SLOPE_RIGHT) {
+					texture = Assets.slopeRightTexture;
+				}else if (tile == TILE_LAVA) {
 					texture = Assets.lavaTexture;
 				}
 

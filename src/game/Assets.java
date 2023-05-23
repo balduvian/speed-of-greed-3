@@ -32,6 +32,7 @@ public class Assets {
 	public static Texture shopUITexture;
 
 	public static Texture gameOverTexture;
+	public static Texture slopeRightTexture;
 
 	public static void init () {
 		rect = new Vao(new float[] {
@@ -107,5 +108,6 @@ public class Assets {
 		shopUITexture = new Texture("res/shopUI.png");
 
 		gameOverTexture = new Texture("res/gameOverBackground.png");
+		slopeRightTexture = new Texture("res/slopeRight.png");
 	}
 }

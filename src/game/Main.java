@@ -18,7 +18,7 @@ public class Main {
 	static final int STAGE_SHOP = 1;
 	static final float FULL_CAMERA_HEIGHT = 256.0f;
 
-	static final float SHOP_ACTIVE_TIME = 5.0f;
+	static final float SHOP_ACTIVE_TIME = 1.0f;
 
 	static final Level[] levels = LevelLoader.loadAll(new File("res/levels"));
 
@@ -84,7 +84,7 @@ public class Main {
 			if (currentLevel.hasWall) {
 				if (currentStage == STAGE_WALL) {
 					wallTime += delta;
-					wallX = wallTime * Level.TILE_SIZE * 0.5f - Level.TILE_SIZE * 2;
+					wallX = wallTime * Level.TILE_SIZE * 2.0f - Level.TILE_SIZE * 2;
 
 					if (player.x < wallX) {
 						if (player.currency > 0) {
@@ -196,14 +196,14 @@ public class Main {
 						Assets.rect.render();
 
 					} else {
-						//Assets.drugDealerTexture.bind();
-						//Assets.textureShader.enable().setMVP(camera.getMVPCentered(
-						//	11000.0f,
-						//	500.0f,
-						//	1000.0f,
-						//	1000.0f
-						//));
-						//Assets.rect.render();
+						Assets.drugDealerTexture.bind();
+						Assets.textureShader.enable().setMVP(camera.getMVPCentered(
+							(currentLevel.drugDealerPos.x + 0.5f) * Level.TILE_SIZE,
+							currentLevel.drugDealerPos.y * Level.TILE_SIZE + 32.0f,
+							64.0f,
+							64.0f
+						));
+						Assets.rect.render();
 
 						Assets.shopUITexture.bind();
 						Assets.textureShader.enable().setMVP(camera.getMPCentered(
