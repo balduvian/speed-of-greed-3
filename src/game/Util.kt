@@ -5,6 +5,10 @@ object Util {
 		return (a % b + b) % b
 	}
 
+	fun mod(a: Float, b: Float): Float {
+		return (a % b + b) % b
+	}
+
 	fun interp(low: Float, high: Float, along: Float): Float {
 		return (high - low) * along + low
 	}

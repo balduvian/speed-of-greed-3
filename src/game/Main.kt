@@ -29,7 +29,7 @@ object Main {
 
 	fun initalPlayer(): Player {
 		return Player(
-			0.0f, 0.0f, 5, 3
+			0.0f, 0.0f, 10, 3
 		)
 	}
 
@@ -44,9 +44,9 @@ object Main {
 		wallX = 0.0f
 		Main.levelIndex = levelIndex
 		currentLevel = levels[levelIndex % levels.size]
-		currentLevel!!.reset()
-		player.x = (currentLevel!!.spawnX + 0.5f) * Level.TILE_SIZE
-		player.y = currentLevel!!.spawnY * Level.TILE_SIZE
+		currentLevel.reset()
+		player.x = (currentLevel.spawnX + 0.5f) * Level.TILE_SIZE
+		player.y = currentLevel.spawnY * Level.TILE_SIZE
 	}
 
 	lateinit var window: Window
@@ -62,23 +62,19 @@ object Main {
 		var lastTime = System.nanoTime()
 		while (!window.shouldClose()) {
 			window.update()
+
 			val now = System.nanoTime()
-			val delta = ((now - lastTime).toDouble() / Duration.ofSeconds(1).toNanos().toDouble()).toFloat()
+			val delta = ((now - lastTime).toFloat() / Duration.ofSeconds(1).toNanos().toFloat()).coerceAtMost(0.25f)
 			lastTime = now
-			if (currentLevel!!.hasWall) {
+
+			if (currentLevel.hasWall) {
 				if (currentStage == STAGE_WALL) {
 					wallTime += delta
 					wallX = wallTime * Level.TILE_SIZE * 2.0f - Level.TILE_SIZE * 2
-					if (player.x < wallX) {
-						if (player.currency > 0) {
-							if (wallTime % 30 == 0f) {
-								player.currency -= 1
-							}
-						} else {
-							dead = true
-						}
+					if (player.x < wallX - Level.TILE_SIZE * 2.0f) {
+						dead = true
 					}
-					if (player.x > currentLevel!!.safeX * Level.TILE_SIZE) {
+					if (player.x > currentLevel.safeX * Level.TILE_SIZE) {
 						currentStage = STAGE_SHOP
 					}
 				} else if (currentStage == STAGE_SHOP) {
@@ -108,7 +104,7 @@ object Main {
 					startLevel(true, 0)
 				}
 
-				//dead = player.checkDie(currentLevel.dangers);
+				dead = player.checkDie(currentLevel)
 			}
 			if (window.wasResized() || camera.fledgeling()) {
 				val windowRatio = window.width.toFloat() / window.height.toFloat()
@@ -128,13 +124,18 @@ object Main {
 					camera.width,
 					camera.height
 				)
-			).uniform4f(0, camera.x / 100.0f, camera.y / 100.0f, 5.0f, 5.0f)
+			).uniform4f(0,
+				camera.x / 128.0f,
+				camera.y / 128.0f * (camera.height / camera.width),
+				camera.width / 48.0f,
+				camera.height / 48.0f
+			)
 			Assets.rect.render()
 			currentLevel.render(camera)
 			if (!dead) {
 				player.render(camera)
 			}
-			CurrencyViewer.render(camera, player.currency)
+
 			if (currentLevel.hasWall) {
 				if (currentStage == STAGE_WALL) {
 					Assets.colorShader.enable().setMVP(
@@ -192,11 +193,17 @@ object Main {
 					}
 				}
 			}
+
+			/* UI render */
+
+			CurrencyViewer.render(camera, player.currency)
+
 			if (dead) {
 				Assets.gameOverTexture.bind()
 				Assets.textureShader.enable().setMVP(camera.getMP(0f, 0f, camera.width, camera.height))
 				Assets.rect.render()
 			}
+
 			window.swap()
 		}
 	}

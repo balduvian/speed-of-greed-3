@@ -3,14 +3,24 @@ package game.`object`
 import engine.Camera
 import engine.Window
 import game.Assets
+import game.CCD
+import game.Util
+import game.Vector
 import org.lwjgl.glfw.GLFW
+import kotlin.math.PI
+import kotlin.math.floor
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange: Int) {
 	var yVel = 0f
+	var xVel = 0f
 	var gravity = 300f
+	var acceleration = 300f
 	var currency = 0
 	var onGround = false
+
+	val floorAngle = 2.0f * PI.toFloat() / 7.0f
 
 	fun calcJumpForce(): Float {
 		/*
@@ -25,7 +35,7 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 		 *
 		 * = 2g * sqrt(h / g)
 		 */
-		return 1.34f * gravity * sqrt(((jumpRange + 0.5f) * Level.TILE_SIZE / gravity).toDouble()).toFloat()
+		return 2.0f * gravity * sqrt((jumpRange + 0.5f) * Level.TILE_SIZE / gravity)
 	}
 
 	fun centerX(): Float {
@@ -48,90 +58,93 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 		return bestCollision
 	}
 
-	fun update(window: Window, level: Level, delta: Float) { //20, 1620
-		val left = x - LEFT
-		val right = x + RIGHT
-		val down = y + DOWN
-		val up = y + UP
+	private fun angleIsFloor(angle: Float): Boolean {
+		return angle in 0.0f..floorAngle || angle in PI - floorAngle..PI
+			//angle in 0.0f - floorAngle..0.0f || angle in -PI..-PI + floorAngle
+	}
 
-		var velX = 0.0f
+	data class Hitbox(val left: Float, val right: Float, val down: Float, val up: Float)
 
+	fun getHitbox(): Hitbox {
+		return Hitbox(x - LEFT, x + RIGHT, y + DOWN, y + UP)
+	}
+
+	fun update(window: Window, level: Level, delta: Float) {
 		/* control */
 
+		var walking = false
+
 		if (window.key(GLFW.GLFW_KEY_A) >= GLFW.GLFW_PRESS) {
-			velX -= speed * delta
+			xVel -= acceleration * delta
+			walking = true
 		}
 		if (window.key(GLFW.GLFW_KEY_D) >= GLFW.GLFW_PRESS) {
-			velX += speed * delta
+			xVel += acceleration * delta
+			walking = true
 		}
 
-		if (onGround) {
-			if (window.key(GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS || window.key(GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) {
-				yVel = calcJumpForce()
+		val speed = speed
+		if (xVel > speed) xVel = speed
+		else if (xVel < -speed) xVel = -speed
+
+		if (!walking) {
+			if (xVel > 0) {
+				xVel -= acceleration * delta
+				if (xVel < 0) xVel = 0.0f
+			} else if (xVel < 0) {
+				xVel += acceleration * delta
+				if (xVel > 0) xVel = 0.0f
 			}
+		}
+
+		if (onGround && (
+			window.key(GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS || window.key(GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS
+		)) {
+			yVel = 160.0f//calcJumpForce()
+		} else {
+			yVel -= gravity * delta
 		}
 
 		/* collision */
 
-		if (velX < 0.0f) {
-			val leftCollision = findCollision(
-				Collision.collideLeft(level, left + velX, up),
-				Collision.collideLeft(level, left + velX, y),
-				Collision.collideLeft(level, left + velX, down + 1.0f)
-			)
-			if (leftCollision == null) {
-				x += velX
-			} else {
-				x = leftCollision.value + LEFT
-			}
-		} else if (velX > 0.0f) {
-			val rightCollision = findCollision(
-				Collision.collideRight(level, right + velX, up),
-				Collision.collideRight(level, right + velX, y),
-				Collision.collideRight(level, right + velX, down + 1.0f)
-			)
-			if (rightCollision == null) {
-				x += velX
-			} else {
-				x = rightCollision.value - RIGHT
-			}
-		}
+		val move = CCD.Line(Vector(x, y), Vector(x + xVel * delta, y + yVel * delta))
+		val lines = Collision2.collectLines(
+			level,
+			Collision2.getRange(move.start.x, move.end.x, 0.1f),
+			Collision2.getRange(move.start.y, move.end.y, 0.1f),
+			0.1f
+		)
+		val collision = CCD.findCollision(move, lines, 0.1f)
 
-		yVel -= gravity * delta
-
-		if (yVel < 0) {
-			val moveY = yVel * delta
-			val downCollision = findCollision(
-				Collision.collideDown(level, left, down + moveY),
-				Collision.collideDown(level, right, down + moveY),
-				Collision.collideDown(level, left, down + 1.0f + moveY),
-				Collision.collideDown(level, right, down + 1.0f + moveY)
-			)
-			if (downCollision == null) {
-				onGround = false
-			} else {
-				onGround = true
-				y = downCollision.value + DOWN
-				if (yVel < 0) {
-					yVel = 0f
-				}
-			}
-		} else if (yVel > 0) {
+		if (collision == null) {
+			x = move.end.x
+			y = move.end.y
 			onGround = false
-			val moveY = yVel * delta
-			val upCollision = findCollision(
-				Collision.collideUp(level, left, up + moveY),
-				Collision.collideUp(level, right, up + moveY)
-			)
-			if (upCollision != null) {
-				y = upCollision.value - UP
-				if (yVel > 0) {
-					yVel = 0f
+
+		} else {
+			x = collision.movePoint.x
+			y = collision.movePoint.y
+
+			collision.wallVectors.forEach { wallVector ->
+				if (angleIsFloor(wallVector.angle())) {
+					val velocityVector = Vector(xVel, 0.0f)
+					velocityVector.setProject(wallVector)
+
+					xVel = velocityVector.x
+					yVel = velocityVector.y
+					onGround = true
+
+				} else {
+					val velocityVector = Vector(xVel, yVel)
+					velocityVector.setProject(wallVector)
+
+					xVel = velocityVector.x
+					yVel = velocityVector.y
 				}
 			}
 		}
 
-		y += yVel * delta
+		if (y > 96.0f) print("$y,")
 	}
 
 	fun checkCollectCoins(coins: List<Coin>): Boolean {
@@ -153,12 +166,28 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 		return false
 	}
 
+	fun checkDie(level: Level): Boolean {
+		val (left, right, down, up) = getHitbox()
+
+		return arrayOf(
+			left to down,
+			left to up,
+			right to down,
+			right to up,
+		).any { (x, y) ->
+			val subY = Util.mod(y, Level.TILE_SIZE)
+
+			subY < 12.0f && level.access(
+				floor(x / Level.TILE_SIZE).toInt(),
+				floor(y / Level.TILE_SIZE).toInt()
+			) == Level.TILE_LAVA
+		}
+	}
+
 	val speed: Float
 		get() {
-			var speed = (tilesPerSecond - SPEED_FLOOR) * Level.TILE_SIZE * Math.pow(
-				(5.0f / 10.0f).toDouble(),
-				(currency.toFloat() / 2.0f).toDouble()
-			).toFloat() + SPEED_FLOOR * Level.TILE_SIZE
+			var speed = (tilesPerSecond - SPEED_FLOOR) * Level.TILE_SIZE * (5.0f / 10.0f)
+				.pow((currency / 2.0f)) + SPEED_FLOOR * Level.TILE_SIZE
 			if (speed < SPEED_FLOOR * Level.TILE_SIZE) speed = SPEED_FLOOR * Level.TILE_SIZE
 			return speed
 		}

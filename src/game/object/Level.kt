@@ -88,6 +88,7 @@ class Level(
 		const val TILE_LAVA = 3
 		const val TILE_SLOPE_RIGHT = 4
 		const val TILE_SLOPE_LEFT = 5
-		const val TILE_SIZE = 32.0f
+
+		const val TILE_SIZE = 16.0f
 	}
 }

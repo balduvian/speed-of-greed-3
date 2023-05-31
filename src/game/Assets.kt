@@ -95,7 +95,7 @@ object Assets {
 		brickTexture = Texture("res/lvlOneBrick.png")
 		panelTexture = Texture("res/backgroundText.png").repeat()
 		hellGroundTexture = Texture("res/rockBlock.png")
-		hellBackgroundTexture = Texture("res/lavaBackground.png")
+		hellBackgroundTexture = Texture("res/lavaBackground.png").repeat()
 		lavaTexture = Texture("res/lavaTile.png")
 		drugDealerTexture = Texture("res/shopDrugkeeperDealer.png")
 		shopUITexture = Texture("res/shopUI.png")

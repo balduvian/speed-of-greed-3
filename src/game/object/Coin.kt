@@ -31,6 +31,6 @@ class Coin(var x: Float, var y: Float, var tier: CoinLevel) {
 	}
 
 	companion object {
-		private const val SIZE = 32.0f
+		private const val SIZE = 16.0f
 	}
 }
