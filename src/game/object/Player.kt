@@ -16,26 +16,15 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 	var yVel = 0f
 	var xVel = 0f
 	var gravity = 300f
-	var acceleration = 300f
+	var acceleration = 600f
 	var currency = 0
 	var onGround = false
 
 	val floorAngle = 2.0f * PI.toFloat() / 7.0f
 
 	fun calcJumpForce(): Float {
-		/*
-		 * let h be max jump height, g be gravity, x be time
-		 * equation for jumping parabola: h - gx^2
-		 *
-		 * solve for when height = 0, get x = -sqrt(h / g)
-		 *
-		 * the derivative is -2gx
-		 *
-		 * plug in -2g(-sqrt(h/g)) to get jump boost at t = 0 to achieve max height given gravity
-		 *
-		 * = 2g * sqrt(h / g)
-		 */
-		return 2.0f * gravity * sqrt((jumpRange + 0.5f) * Level.TILE_SIZE / gravity)
+		val x = sqrt(((jumpRange + 0.5f) * Level.TILE_SIZE * 0.5f) / gravity)
+		return 2.0f * gravity * x
 	}
 
 	fun centerX(): Float {
@@ -44,18 +33,6 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 
 	fun centerY(): Float {
 		return y + UP / 2.0f
-	}
-
-	private fun findCollision(vararg collisions: Collision): Collision? {
-		var bestCollision = null as Collision?
-		for (collision in collisions) {
-			if (collision.hit) {
-				if (bestCollision == null || collision.distance < bestCollision.distance) {
-					bestCollision = collision
-				}
-			}
-		}
-		return bestCollision
 	}
 
 	private fun angleIsFloor(angle: Float): Boolean {
@@ -100,7 +77,7 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 		if (onGround && (
 			window.key(GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS || window.key(GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS
 		)) {
-			yVel = 160.0f//calcJumpForce()
+			yVel = calcJumpForce()
 		} else {
 			yVel -= gravity * delta
 		}
@@ -108,10 +85,10 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 		/* collision */
 
 		val move = CCD.Line(Vector(x, y), Vector(x + xVel * delta, y + yVel * delta))
-		val lines = Collision2.collectLines(
+		val lines = Collision.collectLines(
 			level,
-			Collision2.getRange(move.start.x, move.end.x, 0.1f),
-			Collision2.getRange(move.start.y, move.end.y, 0.1f),
+			Collision.getRange(move.start.x, move.end.x, 0.1f),
+			Collision.getRange(move.start.y, move.end.y, 0.1f),
 			0.1f
 		)
 		val collision = CCD.findCollision(move, lines, 0.1f)
@@ -143,8 +120,6 @@ class Player(var x: Float, var y: Float, var tilesPerSecond: Int, var jumpRange:
 				}
 			}
 		}
-
-		if (y > 96.0f) print("$y,")
 	}
 
 	fun checkCollectCoins(coins: List<Coin>): Boolean {

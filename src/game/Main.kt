@@ -29,7 +29,7 @@ object Main {
 
 	fun initalPlayer(): Player {
 		return Player(
-			0.0f, 0.0f, 10, 3
+			0.0f, 0.0f, 6, 3
 		)
 	}
 
@@ -126,7 +126,7 @@ object Main {
 				)
 			).uniform4f(0,
 				camera.x / 128.0f,
-				camera.y / 128.0f * (camera.height / camera.width),
+				-camera.y / 128.0f * (camera.height / camera.width),
 				camera.width / 48.0f,
 				camera.height / 48.0f
 			)
