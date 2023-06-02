@@ -28,7 +28,8 @@ object Assets {
 	lateinit var panelTexture: Texture
 
 	lateinit var hellGroundTexture: Texture
-	lateinit var hellBackgroundTexture: Texture
+	lateinit var hellBackgroundTexture0: Texture
+	lateinit var hellBackgroundTexture1: Texture
 
 	lateinit var lavaTexture: Texture
 	lateinit var drugDealerTexture: Texture
@@ -95,7 +96,10 @@ object Assets {
 		brickTexture = Texture("res/lvlOneBrick.png")
 		panelTexture = Texture("res/backgroundText.png").repeat()
 		hellGroundTexture = Texture("res/rockBlock.png")
-		hellBackgroundTexture = Texture("res/lavaBackground.png").repeat()
+
+		hellBackgroundTexture0 = Texture("res/hell-background-0.png").repeat()
+		hellBackgroundTexture1 = Texture("res/hell-background-1.png").repeat()
+
 		lavaTexture = Texture("res/lavaTile.png")
 		drugDealerTexture = Texture("res/shopDrugkeeperDealer.png")
 		shopUITexture = Texture("res/shopUI.png")

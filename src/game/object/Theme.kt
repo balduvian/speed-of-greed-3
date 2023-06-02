@@ -30,7 +30,7 @@ abstract class Theme {
 			}
 
 			override fun backgroundTexture(): Texture {
-				return Assets.hellBackgroundTexture
+				return Assets.hellBackgroundTexture0
 			}
 
 			override fun dangerTexture(): Texture {
